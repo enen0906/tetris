@@ -178,28 +178,66 @@ function addHoldListener(button, action) {
   button.addEventListener('mouseleave', endHold);
 }
 
-// 綁定按鈕事件
+// 綁定手機按鈕事件和長按
 document.getElementById('left').addEventListener('click', () => playerMove(-1));
 document.getElementById('right').addEventListener('click', () => playerMove(1));
 document.getElementById('down').addEventListener('click', () => playerDrop());
 document.getElementById('drop').addEventListener('click', () => playerHardDrop());
 document.getElementById('rotate').addEventListener('click', () => playerRotate(1));
 
-// 長按功能綁定
 addHoldListener(document.getElementById('left'), () => playerMove(-1));
 addHoldListener(document.getElementById('right'), () => playerMove(1));
 addHoldListener(document.getElementById('down'), () => playerDrop());
 
-// 鍵盤事件
-document.addEventListener('keydown', event => {
-  if(gameOver) return;
-  if(event.repeat) return; // 避免重複執行
-  if(event.key === 'ArrowLeft'){ playerMove(-1); }
-  else if(event.key === 'ArrowRight'){ playerMove(1); }
-  else if(event.key === 'ArrowDown'){ playerDrop(); }
-  else if(event.key.toLowerCase() === 'q'){ playerRotate(-1); }
-  else if(event.key.toLowerCase() === 'w'){ playerRotate(1); }
-});
+// 電腦鍵盤長按實作
+const keysPressed = {};
+const keyHoldInterval = {};
+
+function keyDownHandler(event) {
+  if (gameOver) return;
+  if (keysPressed[event.key]) return; // 已按下不重複執行
+
+  keysPressed[event.key] = true;
+
+  switch(event.key) {
+    case 'ArrowLeft':
+      playerMove(-1);
+      keyHoldInterval['ArrowLeft'] = setInterval(() => playerMove(-1), 100);
+      break;
+    case 'ArrowRight':
+      playerMove(1);
+      keyHoldInterval['ArrowRight'] = setInterval(() => playerMove(1), 100);
+      break;
+    case 'ArrowDown':
+      playerDrop();
+      keyHoldInterval['ArrowDown'] = setInterval(() => playerDrop(), 100);
+      break;
+    case 'q':
+    case 'Q':
+      playerRotate(-1);
+      keyHoldInterval['q'] = setInterval(() => playerRotate(-1), 200);
+      break;
+    case 'w':
+    case 'W':
+      playerRotate(1);
+      keyHoldInterval['w'] = setInterval(() => playerRotate(1), 200);
+      break;
+    case ' ':
+      playerHardDrop();
+      break;
+  }
+}
+
+function keyUpHandler(event) {
+  keysPressed[event.key] = false;
+  if(keyHoldInterval[event.key]){
+    clearInterval(keyHoldInterval[event.key]);
+    keyHoldInterval[event.key] = null;
+  }
+}
+
+document.addEventListener('keydown', keyDownHandler);
+document.addEventListener('keyup', keyUpHandler);
 
 function startMode(selectedMode){
   mode = selectedMode;
