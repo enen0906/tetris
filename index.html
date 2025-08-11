@@ -6,28 +6,72 @@
 <title>俄羅斯方塊門市活動</title>
 <style>
   body {
-    margin: 0; background: #111; color: #fff; font-family: Arial, sans-serif;
-    display: flex; flex-direction: column; align-items: center; min-height: 100vh; text-align: center;
+    margin: 0; 
+    background: #111; 
+    color: #fff; 
+    font-family: Arial, sans-serif;
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    min-height: 100vh; 
+    text-align: center;
   }
+
+  /* 確保所有區塊文字都白色 */
+  #home, #game, #end, #home *, #game *, #end * {
+    color: #fff !important;
+  }
+
   #home, #game, #end {
-    max-width: 400px; width: 100%; padding: 10px; box-sizing: border-box;
+    max-width: 400px; 
+    width: 100%; 
+    padding: 10px; 
+    box-sizing: border-box;
     display: none;
   }
+
   #home {
     display: block; /* 頁面一打開就顯示首頁 */
   }
+
   button {
-    background: #03a9f4; border: none; color: white; padding: 12px 20px;
-    margin: 10px 5px; font-size: 18px; border-radius: 8px; cursor: pointer;
+    background: #03a9f4; 
+    border: none; 
+    color: white; 
+    padding: 12px 20px;
+    margin: 10px 5px; 
+    font-size: 18px; 
+    border-radius: 8px; 
+    cursor: pointer;
   }
   button:active { background: #0288d1; }
+
   canvas {
-    background: #222; display: block; margin: 20px auto; border: 4px solid #fff;
+    background: #222; 
+    display: block; 
+    margin: 20px auto; 
+    border: 4px solid #fff;
   }
-  #controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
-  #controls button { flex: 1 1 70px; }
+
+  #controls { 
+    display: flex; 
+    justify-content: center; 
+    gap: 10px; 
+    flex-wrap: wrap; 
+  }
+
+  #controls button { 
+    flex: 1 1 70px; 
+  }
+
   input, select {
-    width: 80%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; font-size: 16px;
+    width: 80%; 
+    padding: 10px; 
+    margin: 8px 0; 
+    border-radius: 6px; 
+    border: none; 
+    font-size: 16px; 
+    color: #000;  /* 輸入框文字黑色 */
   }
 </style>
 </head>
