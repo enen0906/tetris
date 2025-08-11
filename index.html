@@ -6,99 +6,40 @@
 <title>俄羅斯方塊門市活動</title>
 <style>
   body {
-    margin: 0; 
-    background: #111; 
-    color: #fff; 
-    font-family: Arial, sans-serif;
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
-    min-height: 100vh; 
-    text-align: center;
+    margin: 0; background: #111; color: #fff; font-family: Arial, sans-serif;
+    display: flex; flex-direction: column; align-items: center; min-height: 100vh; text-align: center;
   }
-
-  /* 確保所有區塊文字都白色 */
-  #home, #game, #end, #home *, #game *, #end * {
-    color: #fff !important;
-  }
-
   #home, #game, #end {
-    max-width: 400px; 
-    width: 100%; 
-    padding: 10px; 
-    box-sizing: border-box;
+    max-width: 400px; width: 100%; padding: 10px; box-sizing: border-box;
     display: none;
   }
-
-  #home {
-    display: block; /* 頁面一打開就顯示首頁 */
-  }
-
   button {
-    background: #03a9f4; 
-    border: none; 
-    color: white; 
-    padding: 12px 20px;
-    margin: 10px 5px; 
-    font-size: 18px; 
-    border-radius: 8px; 
-    cursor: pointer;
+    background: #03a9f4; border: none; color: white; padding: 12px 20px;
+    margin: 10px 5px; font-size: 18px; border-radius: 8px; cursor: pointer;
   }
   button:active { background: #0288d1; }
-
   canvas {
-    background: #222; 
-    display: block; 
-    margin: 20px auto; 
-    border: 4px solid #fff;
+    background: #222; display: block; margin: 20px auto; border: 4px solid #fff;
   }
-
-  #controls { 
-    display: flex; 
-    justify-content: center; 
-    gap: 10px; 
-    flex-wrap: wrap; 
-  }
-
-  #controls button { 
-    flex: 1 1 70px; 
-  }
-
+  #controls { display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+  #controls button { flex: 1 1 70px; }
   input, select {
-    width: 80%; 
-    padding: 10px; 
-    margin: 8px 0; 
-    border-radius: 6px; 
-    border: none; 
-    font-size: 16px; 
-    color: #000;  /* 輸入框文字黑色 */
+    width: 80%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; font-size: 16px;
   }
 </style>
+<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
 
 <!-- 首頁 -->
 <div id="home">
   <h2>🎮 俄羅斯方塊挑戰</h2>
-  <p>遊戲規則與操作說明：</p>
-  <ul style="text-align:left; line-height: 1.6;">
-    <li>🎯 遊戲目標：排列方塊使橫向行數滿行即可消除，得分越高越好。</li>
-    <li>⏱️ 遊戲模式：
-      <ul>
-        <li>達成 500 分挑戰：目標累積得分達 500 分即完成。</li>
-        <li>三分鐘挑戰：限時 3 分鐘內盡可能得高分。</li>
-      </ul>
-    </li>
-    <li>🕹 操作方式：
-      <ul>
-        <li>左移：按「◀️」按鈕或鍵盤左方向鍵</li>
-        <li>右移：按「▶️」按鈕或鍵盤右方向鍵</li>
-        <li>加速落下：按「🔽」按鈕或鍵盤下方向鍵</li>
-        <li>旋轉方塊：按「🔄」按鈕，或鍵盤「Q」「W」鍵旋轉</li>
-        <li>直接落下：按「⬇️⬇️」按鈕，或鍵盤空白鍵 (Spacebar)</li>
-      </ul>
-    </li>
-    <li>🎁 完成挑戰後可至指定門市領取贈品！</li>
+  <p>玩法說明：</p>
+  <ul style="text-align:left;">
+    <li>用按鈕或鍵盤操作移動與旋轉方塊。</li>
+    <li>排列滿行會消除並得分。</li>
+    <li>速度會隨分數提升，挑戰更高分！</li>
+    <li>完成挑戰即可至門市領取贈品！</li>
   </ul>
   <button onclick="startMode('500')">🎯 達成 500 分挑戰</button>
   <button onclick="startMode('3min')">⏱️ 三分鐘挑戰</button>
@@ -113,7 +54,6 @@
     <button id="left">◀️</button>
     <button id="right">▶️</button>
     <button id="down">🔽</button>
-    <button id="hardDrop">⬇️⬇️</button>
     <button id="rotate">🔄</button>
   </div>
 </div>
@@ -133,6 +73,7 @@
 </div>
 
 <script>
+const LIFF_ID = '2007597530-Dmy8j9mN';  // 請改成你的 LIFF ID
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzfXLDN7FBYV9Zpukea2emKOEZNntkvl49iH6kbVaAtUPLFzQCri6XhA4ftK_S7pk3ddA/exec';  // 請改成你的 GAS 網址
 
 let mode = '';
@@ -212,18 +153,6 @@ function playerRotate(dir){
     }
   }
 }
-// 玩家直接硬下方塊
-function playerHardDrop() {
-  while(!collide(arena, player)){
-    player.pos.y++;
-  }
-  player.pos.y--;
-  merge(arena, player);
-  arenaSweep();
-  updateScore();
-  playerReset();
-}
-
 function playerDrop() {
   player.pos.y++;
   if(collide(arena, player)){
@@ -338,63 +267,17 @@ function endGame() {
   endDiv.style.display = 'block';
   document.getElementById('result').innerText = `遊戲時間：${timer} 秒，分數：${score}`;
 }
-
-let holdInterval = null;
-document.getElementById('left').addEventListener('mousedown', () => {
-  holdInterval = setInterval(() => playerMove(-1), 100);
-});
-document.getElementById('left').addEventListener('mouseup', () => {
-  clearInterval(holdInterval);
-});
-document.getElementById('left').addEventListener('mouseleave', () => {
-  clearInterval(holdInterval);
-});
-
-document.getElementById('right').addEventListener('mousedown', () => {
-  holdInterval = setInterval(() => playerMove(1), 100);
-});
-document.getElementById('right').addEventListener('mouseup', () => {
-  clearInterval(holdInterval);
-});
-document.getElementById('right').addEventListener('mouseleave', () => {
-  clearInterval(holdInterval);
-});
-
-document.getElementById('down').addEventListener('mousedown', () => {
-  holdInterval = setInterval(() => playerDrop(), 50);
-});
-document.getElementById('down').addEventListener('mouseup', () => {
-  clearInterval(holdInterval);
-});
-document.getElementById('down').addEventListener('mouseleave', () => {
-  clearInterval(holdInterval);
-});
-
-document.getElementById('hardDrop').addEventListener('click', () => {
-  playerHardDrop();
-});
-
+document.getElementById('left').addEventListener('click', () => playerMove(-1));
+document.getElementById('right').addEventListener('click', () => playerMove(1));
+document.getElementById('down').addEventListener('click', () => playerDrop());
 document.getElementById('rotate').addEventListener('click', () => playerRotate(1));
 document.addEventListener('keydown', event => {
   if(gameOver) return;
-  if(event.key === 'ArrowLeft'){
-    playerMove(-1);
-  }
-  else if(event.key === 'ArrowRight'){
-    playerMove(1);
-  }
-  else if(event.key === 'ArrowDown'){
-    playerDrop();
-  }
-  else if(event.key.toLowerCase() === 'q'){
-    playerRotate(-1);
-  }
-  else if(event.key.toLowerCase() === 'w'){
-    playerRotate(1);
-  }
-  else if(event.key === ' '){  // 空白鍵硬下
-    playerHardDrop();
-  }
+  if(event.key === 'ArrowLeft'){ playerMove(-1); }
+  else if(event.key === 'ArrowRight'){ playerMove(1); }
+  else if(event.key === 'ArrowDown'){ playerDrop(); }
+  else if(event.key.toLowerCase() === 'q'){ playerRotate(-1); }
+  else if(event.key.toLowerCase() === 'w'){ playerRotate(1); }
 });
 
 function startMode(selectedMode){
@@ -428,6 +311,7 @@ async function submitResult() {
   try {
     const res = await fetch(`${GAS_URL}?${params.toString()}`, {
       method: 'GET',
+      mode: 'cors'
     });
 
     if (!res.ok) {
@@ -440,6 +324,15 @@ async function submitResult() {
     alert('提交失敗：' + e.message);
   }
 }
+
+liff.init({ liffId: LIFF_ID })
+  .then(() => {
+    // 不強制登入，直接顯示首頁
+    homeDiv.style.display = 'block';
+  })
+  .catch(err => {
+    alert('LIFF 初始化失敗：' + err.message);
+  });
 </script>
 </body>
 </html>
