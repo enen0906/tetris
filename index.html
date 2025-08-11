@@ -7,198 +7,288 @@
 <style>
   body {
     margin: 0; background: #111; color: #fff; font-family: Arial, sans-serif;
-    display: flex; flex-direction: column; align-items: center; min-height: 100vh; text-align: center;
+    display: flex; flex-direction: column; align-items: center; min-height: 100vh;
   }
-  #home, #game, #end {
-    max-width: 400px; width: 100%; padding: 10px; box-sizing: border-box;
-    display: none;
-  }
+  h1, h2, p { text-align: center; }
+  #startScreen, #gameScreen { display: none; }
   button {
-    background: #03a9f4; border: none; color: white; padding: 12px 10px;
-    margin: 8px 4px; font-size: 20px; border-radius: 8px; cursor: pointer;
-    user-select: none;
+    background: #28a745; color: white; border: none; padding: 10px 20px;
+    font-size: 18px; border-radius: 5px; cursor: pointer;
   }
-  button:active { background: #0288d1; }
-  canvas {
-    background: #222; display: block; margin: 20px auto; border: 4px solid #fff;
+  button:hover { background: #218838; }
+  canvas { background: #000; margin-top: 20px; }
+  .controls { margin-top: 20px; }
+  .control-btn {
+    background: #444; color: #fff; border: none; padding: 10px;
+    margin: 5px; font-size: 18px; border-radius: 5px;
   }
-  #controls { 
-    display: flex; 
-    justify-content: center; 
-    gap: 8px; 
-    flex-wrap: wrap; 
-  }
-  #controls button { 
-    flex: 1 1 60px; 
-    min-width: 60px; 
-    max-width: 80px;
-    padding: 14px 0;
-  }
-  input, select {
-    width: 80%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; font-size: 16px;
-  }
-  ul {
-    padding-left: 20px;
-    text-align: left;
-  }
-  #game p.instructions {
-    font-size: 14px; margin-bottom: 8px; color: #ccc;
-  }
+  .control-btn:active { background: #666; }
 </style>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
 
-<!-- 首頁 -->
-<div id="home">
-  <h2>🎮 俄羅斯方塊挑戰</h2>
-  <p><strong>遊戲方式：</strong></p>
-  <ul>
-    <li>使用鍵盤或螢幕按鈕控制方塊左右移動、旋轉及下降。</li>
-    <li>排滿一行可消除並得分。</li>
-    <li>遊戲速度會隨分數提升，挑戰更高分數。</li>
-    <li>完成挑戰即可至門市領取贈品！</li>
+<div id="startScreen">
+  <h1>俄羅斯方塊挑戰</h1>
+  <h2>遊戲說明</h2>
+  <p>消除越多行、分數越高！小心別讓方塊堆到頂端！</p>
+  
+  <h3>📌 電腦操作</h3>
+  <ul style="text-align:left;max-width:320px;margin:auto;">
+    <li>←：向左移動</li>
+    <li>→：向右移動</li>
+    <li>↓：加速下落（可長按）</li>
+    <li>空白鍵：直接落下（Hard Drop）</li>
+    <li>Q：逆時針旋轉</li>
+    <li>W：順時針旋轉</li>
   </ul>
-  <button onclick="startMode('500')">🎯 達成 500 分挑戰</button>
-  <button onclick="startMode('3min')">⏱️ 三分鐘挑戰</button>
+
+  <h3>📌 手機操作</h3>
+  <ul style="text-align:left;max-width:320px;margin:auto;">
+    <li>左右箭頭：左右移動</li>
+    <li>下箭頭：加速下落（長按可連續）</li>
+    <li>旋轉按鈕：旋轉方塊</li>
+    <li>「直接落下」按鈕：方塊瞬間到底</li>
+  </ul>
+
+  <button onclick="startGame()">開始遊戲</button>
 </div>
 
-<!-- 遊戲頁 -->
-<div id="game">
-  <div>分數：<span id="score">0</span></div>
-  <div>時間：<span id="timer">0</span> 秒</div>
+<div id="gameScreen">
   <canvas id="tetris" width="240" height="400"></canvas>
-  <div id="controls">
-    <button id="left">◀️</button>
-    <button id="right">▶️</button>
-    <button id="down">🔽</button>
-    <button id="drop">⬇️</button>
-    <button id="rotate">🔄</button>
+  <div class="controls">
+    <button class="control-btn" id="leftBtn">←</button>
+    <button class="control-btn" id="rotateLeftBtn">⟲</button>
+    <button class="control-btn" id="rotateRightBtn">⟳</button>
+    <button class="control-btn" id="rightBtn">→</button>
+    <button class="control-btn" id="downBtn">↓</button>
+    <button class="control-btn" id="dropBtn">直接落下</button>
   </div>
 </div>
 
-<!-- 結束頁 -->
-<div id="end">
-  <h2>🎉 恭喜完成挑戰！</h2>
-  <p id="result"></p>
-  <input id="nickname" type="text" placeholder="請輸入暱稱（必填）" />
-  <select id="store">
-    <option value="">選擇領取門市（必填）</option>
-    <option value="成大校園門市">成大校園門市</option>
-    <option value="南臺校園門市">南臺校園門市</option>
-  </select>
-  <br/>
-  <button onclick="submitResult()">提交成績並領取贈品</button>
-</div>
-
 <script>
-const LIFF_ID = '2007597530-Dmy8j9mN';  // 請改成你的 LIFF ID
-const GAS_URL = 'https://script.google.com/macros/s/AKfycbyWQBO77Eh_n-yXzkpL_IWg4k-jx_5FUOktgpgOcajZ8Bt5g40VDSe66n3k2AwkTnxf/exec';  // 請改成你的 GAS 網址
-
-let mode = '';
-let score = 0;
-let timer = 0;
-let timerInterval;
-let dropInterval = 1000;
-let dropCounter = 0;
-let lastTime = 0;
-let gameOver = false;
-let player = { pos: {x:0,y:0}, matrix: null };
-let arena = createMatrix(12,20);
-const colors = [null,'#FF0D72','#0DC2FF','#0DFF72','#F538FF','#FF8E0D','#FFE138','#3877FF'];
-
-const homeDiv = document.getElementById('home');
-const gameDiv = document.getElementById('game');
-const endDiv = document.getElementById('end');
+// 遊戲初始化
 const canvas = document.getElementById('tetris');
 const context = canvas.getContext('2d');
 context.scale(20, 20);
 
-function createMatrix(w, h) { const matrix = []; while (h--) matrix.push(new Array(w).fill(0)); return matrix; }
-function createPiece(type) { switch(type){ case 'T': return [[0,0,0],[1,1,1],[0,1,0]]; case 'O': return [[2,2],[2,2]]; case 'L': return [[0,3,0],[0,3,0],[0,3,3]]; case 'J': return [[0,4,0],[0,4,0],[4,4,0]]; case 'I': return [[0,5,0,0],[0,5,0,0],[0,5,0,0],[0,5,0,0]]; case 'S': return [[0,6,6],[6,6,0],[0,0,0]]; case 'Z': return [[7,7,0],[0,7,7],[0,0,0]]; }}
-function collide(arena, player) { const [m, o] = [player.matrix, player.pos]; for(let y=0; y<m.length; ++y){ for(let x=0; x<m[y].length; ++x){ if(m[y][x] !== 0 && (arena[y + o.y] && arena[y + o.y][x + o.x]) !== 0){ return true; } } } return false; }
-function merge(arena, player) { player.matrix.forEach((row,y) => { row.forEach((value,x) => { if(value !== 0){ arena[y + player.pos.y][x + player.pos.x] = value; } }); }); }
-function rotate(matrix, dir) { for(let y=0; y<matrix.length; ++y){ for(let x=0; x<y; ++x){ [matrix[x][y], matrix[y][x]] = [matrix[y][x], matrix[x][y]]; } } if(dir > 0){ matrix.forEach(row => row.reverse()); } else { matrix.reverse(); } }
-function playerRotate(dir){ const pos = player.pos.x; let offset = 1; rotate(player.matrix, dir); while(collide(arena, player)){ player.pos.x += offset; offset = -(offset + (offset > 0 ? 1 : -1)); if(Math.abs(offset) > player.matrix[0].length){ rotate(player.matrix, -dir); player.pos.x = pos; return; } } }
-function playerDrop() { player.pos.y++; if(collide(arena, player)){ player.pos.y--; merge(arena, player); arenaSweep(); updateScore(); if(mode === '500' && score >= 500){ endGame(); return; } playerReset(); } dropCounter = 0; }
+const matrix = [
+  [0, 0, 0],
+  [1, 1, 1],
+  [0, 1, 0],
+];
+
+const arena = createMatrix(12, 20);
+
+function createMatrix(w, h) {
+  const matrix = [];
+  while (h--) {
+    matrix.push(new Array(w).fill(0));
+  }
+  return matrix;
+}
+
+function collide(arena, player) {
+  const [m, o] = [player.matrix, player.pos];
+  for (let y = 0; y < m.length; ++y) {
+    for (let x = 0; x < m[y].length; ++x) {
+      if (m[y][x] !== 0 &&
+         (arena[y + o.y] &&
+          arena[y + o.y][x + o.x]) !== 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+function merge(arena, player) {
+  player.matrix.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value !== 0) {
+        arena[y + player.pos.y][x + player.pos.x] = value;
+      }
+    });
+  });
+}
+
+function playerDrop() {
+  player.pos.y++;
+  if (collide(arena, player)) {
+    player.pos.y--;
+    merge(arena, player);
+    playerReset();
+    arenaSweep();
+  }
+  dropCounter = 0;
+}
+
 function playerHardDrop() {
-  while(!collide(arena, player)) {
+  while (!collide(arena, player)) {
     player.pos.y++;
   }
   player.pos.y--;
   merge(arena, player);
-  arenaSweep();
-  updateScore();
-  if(mode === '500' && score >= 500){
-    endGame();
-    return;
-  }
   playerReset();
+  arenaSweep();
   dropCounter = 0;
 }
-function playerMove(dir) { player.pos.x += dir; if(collide(arena, player)){ player.pos.x -= dir; } }
-function playerReset() { const pieces = 'ILJOTSZ'; player.matrix = createPiece(pieces[Math.floor(Math.random() * pieces.length)]); player.pos.y = 0; player.pos.x = Math.floor(arena[0].length / 2) - Math.floor(player.matrix[0].length / 2); if(collide(arena, player)){ arena.forEach(row => row.fill(0)); score = 0; updateScore(); endGame(); } }
-function arenaSweep() { let rowCount = 1; outer: for(let y=arena.length -1; y>=0; --y){ for(let x=0; x<arena[y].length; ++x){ if(arena[y][x] === 0){ continue outer; } } const row = arena.splice(y,1)[0].fill(0); arena.unshift(row); score += rowCount * 50; rowCount *= 2; } }
-function updateScore() { document.getElementById('score').innerText = score; }
-function drawMatrix(matrix, offset){ matrix.forEach((row,y) => { row.forEach((value,x) => { if(value !== 0){ context.fillStyle = colors[value]; context.fillRect(x + offset.x, y + offset.y, 1, 1); } }); }); }
-function draw() { context.fillStyle = '#222'; context.fillRect(0, 0, canvas.width, canvas.height); drawMatrix(arena, {x:0, y:0}); drawMatrix(player.matrix, player.pos); }
-function update(time = 0){ const deltaTime = time - lastTime; lastTime = time; dropCounter += deltaTime; if(dropCounter > dropInterval){ playerDrop(); } draw(); if(!gameOver){ requestAnimationFrame(update); } }
-function startTimer(){ timer = 0; document.getElementById('timer').innerText = timer; timerInterval = setInterval(() => { timer++; document.getElementById('timer').innerText = timer; if(mode === '3min' && timer >= 180){ endGame(); } }, 1000); }
-function stopTimer(){ clearInterval(timerInterval); }
-function startGame() { arena.forEach(row => row.fill(0)); score = 0; updateScore(); playerReset(); lastTime = 0; dropCounter = 0; dropInterval = 1000; gameOver = false; homeDiv.style.display = 'none'; endDiv.style.display = 'none'; gameDiv.style.display = 'block'; startTimer(); update(); }
-function endGame() { stopTimer(); gameOver = true; gameDiv.style.display = 'none'; endDiv.style.display = 'block'; document.getElementById('result').innerText = `遊戲時間：${timer} 秒，分數：${score}`; }
 
-// 手機長按按鈕實作
-function addHoldListener(button, action) {
-  let holdInterval;
-  let holdTimeout;
-
-  function startHold() {
-    action(); // 先執行一次
-    holdTimeout = setTimeout(() => {
-      holdInterval = setInterval(action, 100);
-    }, 300);
+function playerMove(dir) {
+  player.pos.x += dir;
+  if (collide(arena, player)) {
+    player.pos.x -= dir;
   }
-  function endHold() {
-    clearTimeout(holdTimeout);
-    clearInterval(holdInterval);
-  }
-
-  button.addEventListener('touchstart', e => {
-    e.preventDefault();
-    startHold();
-  }, {passive: false});
-  button.addEventListener('mousedown', e => {
-    e.preventDefault();
-    startHold();
-  });
-  button.addEventListener('touchend', endHold);
-  button.addEventListener('touchcancel', endHold);
-  button.addEventListener('mouseup', endHold);
-  button.addEventListener('mouseleave', endHold);
 }
 
-// 綁定手機按鈕事件和長按
-document.getElementById('left').addEventListener('click', () => playerMove(-1));
-document.getElementById('right').addEventListener('click', () => playerMove(1));
-document.getElementById('down').addEventListener('click', () => playerDrop());
-document.getElementById('drop').addEventListener('click', () => playerHardDrop());
-document.getElementById('rotate').addEventListener('click', () => playerRotate(1));
+function playerReset() {
+  const pieces = 'TJLOSZI';
+  player.matrix = createPiece(pieces[pieces.length * Math.random() | 0]);
+  player.pos.y = 0;
+  player.pos.x = (arena[0].length / 2 | 0) -
+                 (player.matrix[0].length / 2 | 0);
+  if (collide(arena, player)) {
+    arena.forEach(row => row.fill(0));
+    gameOver = true;
+    alert('遊戲結束！');
+    document.getElementById('startScreen').style.display = 'block';
+    document.getElementById('gameScreen').style.display = 'none';
+  }
+}
 
-addHoldListener(document.getElementById('left'), () => playerMove(-1));
-addHoldListener(document.getElementById('right'), () => playerMove(1));
-addHoldListener(document.getElementById('down'), () => playerDrop());
+function createPiece(type) {
+  if (type === 'T') {
+    return [
+      [0,0,0],
+      [1,1,1],
+      [0,1,0],
+    ];
+  } else if (type === 'O') {
+    return [
+      [2,2],
+      [2,2],
+    ];
+  } else if (type === 'L') {
+    return [
+      [0,3,0],
+      [0,3,0],
+      [0,3,3],
+    ];
+  } else if (type === 'J') {
+    return [
+      [0,4,0],
+      [0,4,0],
+      [4,4,0],
+    ];
+  } else if (type === 'I') {
+    return [
+      [0,5,0,0],
+      [0,5,0,0],
+      [0,5,0,0],
+      [0,5,0,0],
+    ];
+  } else if (type === 'S') {
+    return [
+      [0,6,6],
+      [6,6,0],
+      [0,0,0],
+    ];
+  } else if (type === 'Z') {
+    return [
+      [7,7,0],
+      [0,7,7],
+      [0,0,0],
+    ];
+  }
+}
 
-// 電腦鍵盤長按實作
+function playerRotate(dir) {
+  const pos = player.pos.x;
+  let offset = 1;
+  rotate(player.matrix, dir);
+  while (collide(arena, player)) {
+    player.pos.x += offset;
+    offset = -(offset + (offset > 0 ? 1 : -1));
+    if (offset > player.matrix[0].length) {
+      rotate(player.matrix, -dir);
+      player.pos.x = pos;
+      return;
+    }
+  }
+}
+
+function rotate(matrix, dir) {
+  for (let y = 0; y < matrix.length; ++y) {
+    for (let x = 0; x < y; ++x) {
+      [ matrix[x][y], matrix[y][x] ] = [ matrix[y][x], matrix[x][y] ];
+    }
+  }
+  if (dir > 0) {
+    matrix.forEach(row => row.reverse());
+  } else {
+    matrix.reverse();
+  }
+}
+
+function arenaSweep() {
+  outer: for (let y = arena.length - 1; y >= 0; --y) {
+    for (let x = 0; x < arena[y].length; ++x) {
+      if (arena[y][x] === 0) {
+        continue outer;
+      }
+    }
+    const row = arena.splice(y, 1)[0].fill(0);
+    arena.unshift(row);
+    ++y;
+  }
+}
+
+let dropCounter = 0;
+let dropInterval = 1000;
+let lastTime = 0;
+let gameOver = false;
+
+function update(time = 0) {
+  const deltaTime = time - lastTime;
+  lastTime = time;
+  dropCounter += deltaTime;
+  if (dropCounter > dropInterval) {
+    playerDrop();
+  }
+  draw();
+  requestAnimationFrame(update);
+}
+
+function draw() {
+  context.fillStyle = '#000';
+  context.fillRect(0, 0, canvas.width, canvas.height);
+  drawMatrix(arena, {x:0, y:0});
+  drawMatrix(player.matrix, player.pos);
+}
+
+function drawMatrix(matrix, offset) {
+  matrix.forEach((row, y) => {
+    row.forEach((value, x) => {
+      if (value !== 0) {
+        context.fillStyle = 'hsl(' + value * 60 + ', 100%, 50%)';
+        context.fillRect(x + offset.x, y + offset.y, 1, 1);
+      }
+    });
+  });
+}
+
+const player = {
+  pos: {x:0, y:0},
+  matrix: null,
+};
+
+// 鍵盤長按功能
 const keysPressed = {};
 const keyHoldInterval = {};
 
 function keyDownHandler(event) {
   if (gameOver) return;
-  if (keysPressed[event.key]) return; // 已按下不重複執行
-
+  if (keysPressed[event.key]) return;
   keysPressed[event.key] = true;
-
   switch(event.key) {
     case 'ArrowLeft':
       playerMove(-1);
@@ -230,7 +320,7 @@ function keyDownHandler(event) {
 
 function keyUpHandler(event) {
   keysPressed[event.key] = false;
-  if(keyHoldInterval[event.key]){
+  if (keyHoldInterval[event.key]) {
     clearInterval(keyHoldInterval[event.key]);
     keyHoldInterval[event.key] = null;
   }
@@ -239,64 +329,34 @@ function keyUpHandler(event) {
 document.addEventListener('keydown', keyDownHandler);
 document.addEventListener('keyup', keyUpHandler);
 
-function startMode(selectedMode){
-  mode = selectedMode;
-  startGame();
+// 手機按鈕
+function bindButton(id, action, interval = 100) {
+  const btn = document.getElementById(id);
+  let timer;
+  btn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    action();
+    timer = setInterval(action, interval);
+  });
+  btn.addEventListener('touchend', e => {
+    clearInterval(timer);
+  });
 }
 
-async function submitResult() {
-  const nicknameInput = document.getElementById('nickname');
-  const nickname = nicknameInput.value.trim();
-  const store = document.getElementById('store').value.trim();
+bindButton('leftBtn', () => playerMove(-1));
+bindButton('rightBtn', () => playerMove(1));
+bindButton('downBtn', () => playerDrop());
+bindButton('rotateLeftBtn', () => playerRotate(-1), 200);
+bindButton('rotateRightBtn', () => playerRotate(1), 200);
+document.getElementById('dropBtn').addEventListener('click', playerHardDrop);
 
-  if (!nickname) {
-    alert('請輸入暱稱');
-    nicknameInput.focus();
-    return;
-  }
-  if (!store) {
-    alert('請選擇領取門市');
-    return;
-  }
-
-  const params = new URLSearchParams({
-    nickname: nickname,
-    mode: mode === '500' ? '達成 500 分計時挑戰' : '三分鐘計時挑戰',
-    score: score.toString(),
-    time: timer.toString(),
-    store: store
-  });
-
-  const requestUrl = `${GAS_URL}?${params.toString()}`;
-  console.log('送出成績至：', requestUrl);
-
-  try {
-    const res = await fetch(requestUrl, {
-      method: 'GET',
-    });
-
-    if (!res.ok) {
-      throw new Error(`HTTP 錯誤 ${res.status}`);
-    }
-
-    alert('已成功提交，請攜帶手機截圖至門市領取贈品！');
-    location.reload();
-  } catch (e) {
-    alert('提交失敗：' + e.message);
-  }
+function startGame() {
+  document.getElementById('startScreen').style.display = 'none';
+  document.getElementById('gameScreen').style.display = 'block';
+  playerReset();
+  update();
 }
-
-liff.init({ liffId: LIFF_ID })
-  .then(() => {
-    if (!liff.isLoggedIn()) {
-      liff.login();
-    } else {
-      homeDiv.style.display = 'block';
-    }
-  })
-  .catch(err => {
-    alert('LIFF 初始化失敗：' + err.message);
-  });
 </script>
+
 </body>
 </html>
