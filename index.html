@@ -13,6 +13,9 @@
     max-width: 400px; width: 100%; padding: 10px; box-sizing: border-box;
     display: none;
   }
+  #home {
+    display: block; /* 頁面一打開就顯示首頁 */
+  }
   button {
     background: #03a9f4; border: none; color: white; padding: 12px 20px;
     margin: 10px 5px; font-size: 18px; border-radius: 8px; cursor: pointer;
@@ -27,7 +30,6 @@
     width: 80%; padding: 10px; margin: 8px 0; border-radius: 6px; border: none; font-size: 16px;
   }
 </style>
-<script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
 
@@ -87,7 +89,6 @@
 </div>
 
 <script>
-const LIFF_ID = '2007597530-Dmy8j9mN';  // 請改成你的 LIFF ID
 const GAS_URL = 'https://script.google.com/macros/s/AKfycbzfXLDN7FBYV9Zpukea2emKOEZNntkvl49iH6kbVaAtUPLFzQCri6XhA4ftK_S7pk3ddA/exec';  // 請改成你的 GAS 網址
 
 let mode = '';
@@ -294,6 +295,7 @@ function endGame() {
   document.getElementById('result').innerText = `遊戲時間：${timer} 秒，分數：${score}`;
 }
 
+let holdInterval = null;
 document.getElementById('left').addEventListener('mousedown', () => {
   holdInterval = setInterval(() => playerMove(-1), 100);
 });
@@ -394,18 +396,6 @@ async function submitResult() {
     alert('提交失敗：' + e.message);
   }
 }
-
-liff.init({ liffId: LIFF_ID })
-  .then(() => {
-    if (!liff.isLoggedIn()) {
-      liff.login();
-    } else {
-      homeDiv.style.display = 'block';
-    }
-  })
-  .catch(err => {
-    alert('LIFF 初始化失敗：' + err.message);
-  });
 </script>
 </body>
 </html>
