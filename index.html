@@ -155,7 +155,14 @@ async function submitResult() {
   });
 
   try {
-    const res = await fetch(`${GAS_URL}?${params.toString()}`);
+    const res = await fetch(`${GAS_URL}?${params.toString()}`, {
+      method: 'GET',
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP 錯誤 ${res.status}`);
+    }
+
     alert('已成功提交，請攜帶手機截圖至門市領取贈品！');
     location.reload();
   } catch (e) {
