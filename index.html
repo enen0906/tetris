@@ -56,6 +56,7 @@
     <button id="right">▶️</button>
     <button id="down">🔽</button>
     <button id="rotate">🔄</button>
+    <button id="drop">💨</button>
   </div>
 </div>
 
@@ -174,6 +175,23 @@ function playerDrop() {
   } 
   dropCounter = 0; 
 }
+// 新增直接落下函式
+function hardDrop() {
+  while(!collide(arena, player)) {
+    player.pos.y++;
+  }
+  player.pos.y--;
+  merge(arena, player);
+  arenaSweep();
+  updateScore();
+  if(mode === '500' && score >= 500){
+    endGame();
+    return;
+  }
+  playerReset();
+  dropCounter = 0;
+}
+
 function playerMove(dir) { 
   player.pos.x += dir; 
   if(collide(arena, player)){ 
@@ -311,6 +329,9 @@ setupHoldButton(document.getElementById('down'), () => playerDrop());
 // 旋轉按鈕單擊
 document.getElementById('rotate').addEventListener('click', () => playerRotate(1));
 
+// 直接落下按鈕點擊
+document.getElementById('drop').addEventListener('click', () => hardDrop());
+
 // 鍵盤事件
 document.addEventListener('keydown', event => {
   if(gameOver) return;
@@ -319,6 +340,9 @@ document.addEventListener('keydown', event => {
   else if(event.key === 'ArrowDown'){ playerDrop(); }
   else if(event.key.toLowerCase() === 'q'){ playerRotate(-1); }
   else if(event.key.toLowerCase() === 'w'){ playerRotate(1); }
+  else if(event.key.toLowerCase() === ' ') { // 空白鍵直接落下
+    hardDrop();
+  }
 });
 
 function startMode(selectedMode){
