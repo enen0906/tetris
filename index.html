@@ -154,8 +154,11 @@ async function submitResult() {
     store: store
   });
 
+  const requestUrl = `${GAS_URL}?${params.toString()}`;
+  console.log('送出成績至：', requestUrl);
+
   try {
-    const res = await fetch(`${GAS_URL}?${params.toString()}`, {
+    const res = await fetch(requestUrl, {
       method: 'GET',
     });
 
